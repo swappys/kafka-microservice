@@ -1,5 +1,6 @@
 package com.appsdeveloperblog.ws.products.service;
 
+import com.appsdeveloperblog.ws.core.ProductCreatedEvent;
 import com.appsdeveloperblog.ws.products.rest.CreateProductRestModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +26,15 @@ public class ProductServiceImpl implements ProductService {
     public String createProduct(CreateProductRestModel productRestModel) throws Exception {
         String productId = UUID.randomUUID().toString();
 
-        ProductCreatedEvent productCreatedEvent = new ProductCreatedEvent(
-        productId, productRestModel.getTitle(), productRestModel.getPrice(), productRestModel.getQuantity()
-        );
+        ProductCreatedEvent productCreatedEvent = ProductCreatedEvent.builder()
+                .productId(productId)
+                .price(productRestModel.getPrice())
+                .quantity(productRestModel.getQuantity())
+                .title(productRestModel.getTitle())
+                .build();
+//        ProductCreatedEvent productCreatedEvent = new ProductCreatedEvent(
+//        productId, productRestModel.getTitle(), productRestModel.getPrice(), productRestModel.getQuantity()
+//        );
         logger.info("Befor publishing a product created event");
         SendResult<String,ProductCreatedEvent> result = kafkaTemplate.send("product-created-events-topic",productId,productCreatedEvent).get();
         logger.info("Partition: "+result.getRecordMetadata().partition());
